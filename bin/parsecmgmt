@@ -293,6 +293,7 @@ Options:
                      NETMODE can be either 'server' or 'client'. 
     -t THREADS       The number of user threads talking to the upTCP/IP stack. Default: '1'
     -r THREADS       The number of TCP/IP protocol receving threads. Default: '1'
+    -j THREADS       The number of compilation threads.
     -l               Disable log.
     -h               Displays this help message.
 
@@ -379,6 +380,7 @@ Examples (3) [NEW: SPLASH-2 Suite and SPLASH-2x Suite]:
   nthreads=""
   userthreads=""
   rxthreads=""
+  makethreads=""
   submit=""
   extension=""
   extcmd=""
@@ -462,6 +464,14 @@ Examples (3) [NEW: SPLASH-2 Suite and SPLASH-2x Suite]:
         fi
         need_arg_for="-s"
         parsemode="SUBMIT";;
+      "-j" )
+        if [ ! -z "${need_arg_for}" ]; then
+          echo "${oprefix} Error: ${parsemode} expected between '${need_arg_for}' and '-j'"
+          echo "${usage}"
+          exit 1
+        fi
+        need_arg_for="-j"
+        parsemode="MAKETHREADS";;
       "-x" )
         if [ ! -z "${need_arg_for}" ]; then
           echo "${oprefix} Error: ${parsemode} expected between '${need_arg_for}' and '-x'"
@@ -598,6 +608,15 @@ Examples (3) [NEW: SPLASH-2 Suite and SPLASH-2x Suite]:
             # Note: This check also filters out strings (rxthreads==0 in that case)
             if [ "${rxthreads}" -lt "1" ]; then
               echo "${oprefix} Error: Illegal number of receiving threads: '${arg}'."
+              echo "${usage}"
+              exit 1
+            fi;;
+          "MAKETHREADS" )
+            parsemode="none"
+            makethreads="${arg}"
+            # Note: This check also filters out strings (makethreads==0 in that case)
+            if [ "${makethreads}" -lt "1" ]; then
+              echo "${oprefix} Error: Illegal number of compilation threads: '${arg}'."
               echo "${usage}"
               exit 1
             fi;;
@@ -1008,6 +1027,9 @@ function build_package {
 
   # Run make
   local makecmd="env ${build_env} ${MAKE}"
+  if [ ! -z ${makethreads} ]; then
+      makecmd="${makecmd} -j ${makethreads}"
+  fi
   eval echo "${oprefix} Running \'$makecmd\':" 2>&1 \| ${TEE} ${log}
   eval \( ${makecmd} 2>&1 \) 2>&1 \| ${TEE} ${log} \; retval=\${PIPESTATUS[0]}
   if [ "$retval" -ne "0" ]; then
