@@ -4,7 +4,9 @@ TARGET = freqmine
 
 CXXFLAGS += -Wno-deprecated
 
+ifneq ($(DISCOVERY_BUILD),1)
 CXXFLAGS += -O2
+endif
 
 all: $(TARGET)
 

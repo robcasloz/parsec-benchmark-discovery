@@ -63,6 +63,10 @@ export LIBS=""
 export EXTRA_LIBS=""
 export PARMACS_MACRO_FILE="pthreads"
 
+# Flags to be picked up by specific app Makefiles (see for example
+# pkgs/apps/freqmine/src/Makefile)
+
+export DISCOVERY_BUILD=1
 
 # OS-specific arguments
 case "${OSTYPE}" in
