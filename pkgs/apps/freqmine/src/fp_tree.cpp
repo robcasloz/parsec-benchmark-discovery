@@ -1447,6 +1447,7 @@ int FP_tree::FP_growth_first(FSout* fout)
 				}
 				local_list->top=listlen-1;
 				release_node_array_after_mining(sequence, thread, workingthread);
+				dfsan_end_marking(LOOP7_BODY);
 				continue;
 			}
 
