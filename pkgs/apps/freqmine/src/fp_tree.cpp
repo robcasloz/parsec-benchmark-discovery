@@ -919,6 +919,10 @@ void FP_tree::scan1_DB(Data* fdat)
 		sched_setaffinity(k, sizeof(unsigned long), &cpu_mask);
 #endif
 #endif
+                // This loop exhausts the number of labels. Avoid tracing
+                // internals by now.
+                if (TRACE_REGION == 4) dfsan_off();
+
 		currentnodeiter[k] = (int**)fp_buf[k]->newbuf(1, itemno * (14 + fast_rightsib_table_size) * sizeof(int *) + num_hot_node * 2 * sizeof(int *)  + (fast_rightsib_table_size * itemno) * sizeof(int *) + fast_rightsib_table_size + 3 * sizeof(int*));
 		nodestack[k] = (Fnode**)(currentnodeiter[k] + itemno);
 		itemstack[k] = (int*)(nodestack[k] + itemno);
@@ -960,6 +964,7 @@ void FP_tree::scan1_DB(Data* fdat)
 			ITlen[k][i] = 0;
 			bran[k][i] = 0;
 		}
+		if (TRACE_REGION == 4) dfsan_on();
 		dfsan_end_marking(LOOP4_BODY);
 	}
         if (TRACE_REGION == 4) dfsan_off();

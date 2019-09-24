@@ -10,15 +10,18 @@ MINIZINC_FLAGS = -a --solver chuffed
 TRACE_MAX_THREADS= 4
 
 all-loop-trace: freqmine.loop1.trace freqmine.loop2.trace freqmine.loop3.trace	\
-                freqmine.loop5.trace freqmine.loop6.trace freqmine.loop7.trace
+                freqmine.loop4.trace freqmine.loop5.trace freqmine.loop6.trace	\
+                freqmine.loop7.trace
 
 all-loop-simple-trace: freqmine.loop1.simple.trace freqmine.loop2.simple.trace	\
-                       freqmine.loop3.simple.trace freqmine.loop5.simple.trace	\
-                       freqmine.loop6.simple.trace freqmine.loop7.simple.trace
+                       freqmine.loop3.simple.trace freqmine.loop4.simple.trace	\
+                       freqmine.loop5.simple.trace freqmine.loop6.simple.trace	\
+                       freqmine.loop7.simple.trace
 
 all-loop-collapsed-simple-trace: freqmine.loop1.collapsed.simple.trace	\
                                  freqmine.loop2.collapsed.simple.trace	\
                                  freqmine.loop3.collapsed.simple.trace	\
+                                 freqmine.loop4.collapsed.simple.trace	\
                                  freqmine.loop5.collapsed.simple.trace	\
                                  freqmine.loop6.collapsed.simple.trace	\
                                  freqmine.loop7.collapsed.simple.trace
@@ -26,12 +29,14 @@ all-loop-collapsed-simple-trace: freqmine.loop1.collapsed.simple.trace	\
 all-loop-collapsed-simple-pdf: freqmine.loop1.collapsed.simple.pdf	\
                                freqmine.loop2.collapsed.simple.pdf	\
                                freqmine.loop3.collapsed.simple.pdf	\
+                               freqmine.loop4.collapsed.simple.pdf	\
                                freqmine.loop5.collapsed.simple.pdf	\
                                freqmine.loop6.collapsed.simple.pdf	\
                                freqmine.loop7.collapsed.simple.pdf
 
 all-loop-collapsed-maps-pdf: freqmine.loop1.collapsed.maps.pdf	\
                              freqmine.loop3.collapsed.maps.pdf	\
+                             freqmine.loop4.collapsed.maps.pdf	\
                              freqmine.loop5.collapsed.maps.pdf	\
                              freqmine.loop7.collapsed.maps.pdf
 
@@ -58,7 +63,6 @@ freqmine.loop3.trace: pkgs/apps/freqmine/src/*
 	mv freqmine.trace $@
 
 # Iterations: 4
-# This loop is currently excluded because it exhausts the number of labels.
 .NOTPARALLEL:
 freqmine.loop4.trace: pkgs/apps/freqmine/src/*
 	TRACE_REGION=4 TRACE_MAX_THREADS=$(TRACE_MAX_THREADS) ./build-trace.sh
