@@ -51,11 +51,13 @@ CBASEFLAGS="-fno-vectorize -fno-slp-vectorize -fno-unroll-loops -Xclang -disable
 
 CDFSANFLAGS="-fsanitize=dataflow -mllvm -dfsan-discovery -mllvm -dfsan-discovery-debug -mllvm -dfsan-combine-pointer-labels-on-load=false -mllvm -dfsan-combine-pointer-labels-on-store=false -mllvm -dfsan-discovery-mark-iterators"
 
+TRACE_FLAGS="-DTRACE_REGION=${TRACE_REGION}"
+
 # Arguments to use
 #export CFLAGS=" -O3 -g -funroll-loops -fprefetch-loop-arrays ${PORTABILITY_FLAGS}"
 #export CXXFLAGS="-O3 -g -funroll-loops -fprefetch-loop-arrays -fpermissive -fno-exceptions ${PORTABILITY_FLAGS}"
-export CFLAGS="${CBASEFLAGS} ${CDFSANFLAGS} ${PORTABILITY_FLAGS}"
-export CXXFLAGS="${CBASEFLAGS} ${CDFSANFLAGS} -fpermissive -fno-exceptions ${PORTABILITY_FLAGS}"
+export CFLAGS="${CBASEFLAGS} ${CDFSANFLAGS} ${PORTABILITY_FLAGS} ${TRACE_FLAGS}"
+export CXXFLAGS="${CBASEFLAGS} ${CDFSANFLAGS} -fpermissive -fno-exceptions ${PORTABILITY_FLAGS} ${TRACE_FLAGS}"
 export CPPFLAGS=""
 export CXXCPPFLAGS=""
 export LDFLAGS="-L${CC_HOME}/lib64 -L${CC_HOME}/lib"

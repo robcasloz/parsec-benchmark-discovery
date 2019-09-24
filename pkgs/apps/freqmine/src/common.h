@@ -35,8 +35,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <time.h>
 #include "fp_tree.h"
 
-#define TRACE_REGION 1
-
 //#define BINARY               // ASCI file or binary file
 
 #define SUDDEN 5
