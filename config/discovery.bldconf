@@ -51,7 +51,13 @@ CBASEFLAGS="-fno-vectorize -fno-slp-vectorize -fno-unroll-loops -Xclang -disable
 
 CDFSANFLAGS="-fsanitize=dataflow -mllvm -dfsan-discovery -mllvm -dfsan-discovery-debug -mllvm -dfsan-combine-pointer-labels-on-load=false -mllvm -dfsan-combine-pointer-labels-on-store=false -mllvm -dfsan-discovery-mark-iterators"
 
-TRACE_FLAGS="-DTRACE_REGION=${TRACE_REGION}"
+# TRACE_REGION: numeric ID of the program region to be traced (typically a loop)
+# TRACE_EXPOSE_PARALLELISM: whether to divide the work in a number of according
+#                           to a number of threads even if the actual execution
+#                           is sequential.
+# TRACE_MAX_THREADS: maximum number of threads given to the application when
+# TRACE_EXPOSE_PARALLELISM is set.
+TRACE_FLAGS="-DTRACE_REGION=${TRACE_REGION} -DTRACE_EXPOSE_PARALLELISM -DTRACE_MAX_THREADS=${TRACE_MAX_THREADS}"
 
 # Arguments to use
 #export CFLAGS=" -O3 -g -funroll-loops -fprefetch-loop-arrays ${PORTABILITY_FLAGS}"

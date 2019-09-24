@@ -57,6 +57,8 @@ using namespace std;
 
 #ifdef _OPENMP
 #include <omp.h>
+#elif defined(TRACE_EXPOSE_PARALLELISM)
+static int omp_get_max_threads() {return TRACE_MAX_THREADS;}
 #else
 static int omp_get_max_threads() {return 1;}
 #endif //_OPENMP

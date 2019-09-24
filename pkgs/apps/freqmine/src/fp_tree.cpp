@@ -45,6 +45,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef _OPENMP
 #include <omp.h>
+#elif defined(TRACE_EXPOSE_PARALLELISM)
+static int omp_get_max_threads() {return TRACE_MAX_THREADS;}
 #else
 static int omp_get_max_threads() {return 1;}
 static int omp_get_thread_num() {return 0;}
@@ -558,7 +560,11 @@ void FP_tree::database_tiling(int workingthread)
 		int size;
 		unsigned short *newcontent;
 		int currentpos;
+#ifdef TRACE_EXPOSE_PARALLELISM
+		int thread = i % TRACE_MAX_THREADS;
+#else
 		int thread = omp_get_thread_num();
+#endif
 		int *local_origin = origin[thread];
 		int *local_ntype = ntypearray[thread];
 		int ntype;
@@ -773,7 +779,12 @@ void FP_tree::scan1_DB(Data* fdat)
 {
 	int i,j;
 	int *counts;
+#ifdef TRACE_EXPOSE_PARALLELISM
+        // TODO: add a global counter and base thread on that.
+	int thread = 0;
+#else
 	int thread = omp_get_thread_num();
+#endif
 
 	mapfile = (MapFile*)database_buf->newbuf(1, sizeof(MapFile));
 	mapfile->first = NULL;
@@ -1083,8 +1094,11 @@ void FP_tree::scan2_DB(int workingthread)
 #pragma omp parallel for schedule(dynamic,1)
 	for (j = 0; j < mergedworknum; j ++) {
 		dfsan_begin_marking(LOOP5_BODY);
+#ifdef TRACE_EXPOSE_PARALLELISM
+		int thread = j % TRACE_MAX_THREADS;
+#else
 		int thread = omp_get_thread_num();
-                printf("thread: %d\n", thread);
+#endif
 		int localthreadworkloadnum = threadworkloadnum[thread];
 		int *localthreadworkload = threadworkload[thread];
 		int has, ntype;
@@ -1393,8 +1407,12 @@ int FP_tree::FP_growth_first(FSout* fout)
 			int current, new_item_no, listlen;
 			int MC2=0;			
 			unsigned int MR2=0;	
-			char* MB2;		
+			char* MB2;
+#ifdef TRACE_EXPOSE_PARALLELISM
+			int thread = sequence % TRACE_MAX_THREADS;
+#else
 			int thread = omp_get_thread_num();
+#endif
 			//release_node_array_before_mining(sequence, thread, workingthread); remove due to data race
 			memory *local_fp_tree_buf = fp_tree_buf[thread];
 			memory *local_fp_buf = fp_buf[thread];
