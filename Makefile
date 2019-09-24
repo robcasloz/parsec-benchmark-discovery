@@ -65,7 +65,7 @@ freqmine.loop7.trace: pkgs/apps/freqmine/src/*
 	mv freqmine.trace $@
 
 freqmine.loop5.collapsed.trace: freqmine.loop5.simple.trace
-	$(PROCESS_TRACE) transform --collapse-instances 5:loop5-body $< > $@
+	$(PROCESS_TRACE) transform --collapse-instances 5:loop-body $< > $@
 
 freqmine.loop7.collapsed.trace: freqmine.loop7.simple.trace
-	$(PROCESS_TRACE) transform --collapse-instances 7:loop7-body $< > $@
+	$(PROCESS_TRACE) transform --collapse-instances 7:loop-body $< > $@

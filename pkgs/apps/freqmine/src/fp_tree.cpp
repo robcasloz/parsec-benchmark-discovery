@@ -221,8 +221,8 @@ template <class T> void first_transform_FPTree_into_FPArray(FP_tree *fptree, T m
 	}
 	new_data_num[0][0] = sum_new_data_num;
 	T *ItemArray = (T *)local_buf->newbuf(1, new_data_num[0][0] * sizeof(T));
-#pragma omp parallel for
         if (TRACE_REGION == 1) dfsan_on();
+#pragma omp parallel for
 	for (j = 0; j < workingthread; j ++) {
 		dfsan_begin_marking(LOOP1_BODY);
 		int kept_itemiter;
@@ -547,8 +547,8 @@ void FP_tree::database_tiling(int workingthread)
 		for (j = local_num_hot_item; j < local_itemno; j ++)
 			origin[i][j] = 1;
 	}
-#pragma omp parallel for schedule(dynamic,1)
         if (TRACE_REGION == 2) dfsan_on();
+#pragma omp parallel for schedule(dynamic,1)
 	for (i = 0; i < mapfile->tablesize; i ++) {
 		dfsan_begin_marking(LOOP2_BODY);
 		int k, l;
@@ -735,8 +735,8 @@ void FP_tree::database_tiling(int workingthread)
 			}
 		}
 
-#pragma omp parallel for
         if (TRACE_REGION == 3) dfsan_on();
+#pragma omp parallel for
 	for (i = 0; i < workingthread; i ++) {
 		dfsan_begin_marking(LOOP3_BODY);
 		MapFileNode *current_mapfilenode;
@@ -891,8 +891,8 @@ void FP_tree::scan1_DB(Data* fdat)
 			hot_node_index[i] = j;
 	}
 	hot_node_depth[0] = 0;
-	#pragma omp parallel for
         if (TRACE_REGION == 4) dfsan_on();
+	#pragma omp parallel for
 	for (int k = 0; k < workingthread; k ++) {
 		dfsan_begin_marking(LOOP4_BODY);
 		int i;
@@ -1079,11 +1079,12 @@ void FP_tree::scan2_DB(int workingthread)
 	wtime(&tstart);
 	database_tiling(workingthread);
 	Fnode **local_hashtable = hashtable[0];
-#pragma omp parallel for schedule(dynamic,1)
         if (TRACE_REGION == 5) dfsan_on();
+#pragma omp parallel for schedule(dynamic,1)
 	for (j = 0; j < mergedworknum; j ++) {
 		dfsan_begin_marking(LOOP5_BODY);
 		int thread = omp_get_thread_num();
+                printf("thread: %d\n", thread);
 		int localthreadworkloadnum = threadworkloadnum[thread];
 		int *localthreadworkload = threadworkload[thread];
 		int has, ntype;
@@ -1197,8 +1198,8 @@ void FP_tree::scan2_DB(int workingthread)
 	}
 	int totalnodes = cal_level_25(0);
 	
-#pragma omp parallel for
         if (TRACE_REGION == 6) dfsan_on();
+#pragma omp parallel for
 	for (j = 0; j < workingthread; j ++) {
 		dfsan_begin_marking(LOOP6_BODY);
 		int local_rightsib_backpatch_count = rightsib_backpatch_count[j][0];
@@ -1378,7 +1379,6 @@ int FP_tree::FP_growth_first(FSout* fout)
 			}
 		}
 
-		#pragma omp parallel for schedule(dynamic,1)
                 // Loop 7 is the only loop that is run more than once, but only
                 // the last run is non-empty. Trace that one.
                 if (TRACE_REGION == 7 &&
@@ -1386,6 +1386,7 @@ int FP_tree::FP_growth_first(FSout* fout)
                   loop7_traced = true;
                   dfsan_on();
                 }
+		#pragma omp parallel for schedule(dynamic,1)
 
 		for(sequence=upperbound - 1; sequence>=lowerbound; sequence--)
 		{	dfsan_begin_marking(LOOP7_BODY);
