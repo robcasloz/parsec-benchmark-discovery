@@ -32,7 +32,8 @@ all-loop-collapsed-simple-pdf: freqmine.loop1.collapsed.simple.pdf	\
 
 all-loop-collapsed-maps-pdf: freqmine.loop1.collapsed.maps.pdf	\
                              freqmine.loop3.collapsed.maps.pdf	\
-                             freqmine.loop5.collapsed.maps.pdf
+                             freqmine.loop5.collapsed.maps.pdf	\
+                             freqmine.loop7.collapsed.maps.pdf
 
 # FIXME: condense! (but make pattern matching does not work as the target gets
 # confused with other .loop%.trace targets).
