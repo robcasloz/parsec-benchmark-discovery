@@ -48,6 +48,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <iomanip>
 #include <time.h>
 #include <sys/time.h>
+#include <sanitizer/dfsan_interface.h>
 #include "common.h"
 
 using namespace std;
@@ -103,6 +104,7 @@ void printLen()
 
 int main(int argc, char **argv)
 {
+	dfsan_off();
 	double tstart, tdatap, tend;
 	int workingthread=omp_get_max_threads();
 	int i;

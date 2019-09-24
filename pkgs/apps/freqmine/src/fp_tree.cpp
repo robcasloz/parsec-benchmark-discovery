@@ -41,6 +41,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "buffer.h"
 #include "common.h"
 #include "wtime.h"
+#include <sanitizer/dfsan_interface.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -208,6 +209,7 @@ template <class T> void first_transform_FPTree_into_FPArray(FP_tree *fptree, T m
 	new_data_num[0][0] = sum_new_data_num;
 	T *ItemArray = (T *)local_buf->newbuf(1, new_data_num[0][0] * sizeof(T));
 #pragma omp parallel for
+        if (TRACE_REGION == 1) dfsan_on();
 	for (j = 0; j < workingthread; j ++) {
 		int kept_itemiter;
 		int itemiter = content_offset_array[j] - 1;
@@ -282,6 +284,7 @@ template <class T> void first_transform_FPTree_into_FPArray(FP_tree *fptree, T m
 			}
 		}
 	}
+        if (TRACE_REGION == 1) dfsan_off();
 	fptree->ItemArray = (int *) ItemArray;
 }
 
@@ -530,6 +533,7 @@ void FP_tree::database_tiling(int workingthread)
 			origin[i][j] = 1;
 	}
 #pragma omp parallel for schedule(dynamic,1)
+        if (TRACE_REGION == 2) dfsan_on();
 	for (i = 0; i < mapfile->tablesize; i ++) {
 		int k, l;
 		int *content;
@@ -623,6 +627,7 @@ void FP_tree::database_tiling(int workingthread)
 			currentnode->finalize();
 			thread_pos[thread] = currentpos;
 	}
+        if (TRACE_REGION == 2) dfsan_off();
 	
 	for (i = 0; i < workingthread; i ++) {
 		thread_pos[i] = 0;
@@ -714,6 +719,7 @@ void FP_tree::database_tiling(int workingthread)
 		}
 
 #pragma omp parallel for
+        if (TRACE_REGION == 3) dfsan_on();
 	for (i = 0; i < workingthread; i ++) {
 		MapFileNode *current_mapfilenode;
 		unsigned short * content;
@@ -738,6 +744,7 @@ void FP_tree::database_tiling(int workingthread)
 			current_mapfilenode = current_mapfilenode->next;
 		}
 	}
+        if (TRACE_REGION == 3) dfsan_off();
 	delete [] tempntypeoffsetbase;
 	delete [] thread_pos;
 }
@@ -866,6 +873,7 @@ void FP_tree::scan1_DB(Data* fdat)
 	}
 	hot_node_depth[0] = 0;
 	#pragma omp parallel for
+        if (TRACE_REGION == 4) dfsan_on();
 	for (int k = 0; k < workingthread; k ++) {
 		int i;
 #ifdef __linux__
@@ -922,6 +930,7 @@ void FP_tree::scan1_DB(Data* fdat)
 			bran[k][i] = 0;
 		}
 	}
+        if (TRACE_REGION == 4) dfsan_off();
 	mapfile->transform_list_table();
 	for (i = 0; i < hot_node_num; i ++)
 		ntypeidarray[i] = i;
@@ -1050,6 +1059,7 @@ void FP_tree::scan2_DB(int workingthread)
 	database_tiling(workingthread);
 	Fnode **local_hashtable = hashtable[0];
 #pragma omp parallel for schedule(dynamic,1)
+        if (TRACE_REGION == 5) dfsan_on();
 	for (j = 0; j < mergedworknum; j ++) {
 		int thread = omp_get_thread_num();
 		int localthreadworkloadnum = threadworkloadnum[thread];
@@ -1154,6 +1164,7 @@ void FP_tree::scan2_DB(int workingthread)
 		rightsib_backpatch_count[thread][0] = local_rightsib_backpatch_count;
 		threadworkloadnum[thread] = localthreadworkloadnum;
 	}
+        if (TRACE_REGION == 5) dfsan_off();
 	delete database_buf;
 	
 	for (int i = 0; i < workingthread; i ++) {
@@ -1164,12 +1175,14 @@ void FP_tree::scan2_DB(int workingthread)
 	int totalnodes = cal_level_25(0);
 	
 #pragma omp parallel for
+        if (TRACE_REGION == 6) dfsan_on();
 	for (j = 0; j < workingthread; j ++) {
 		int local_rightsib_backpatch_count = rightsib_backpatch_count[j][0];
 		Fnode ***local_rightsib_backpatch_stack = rightsib_backpatch_stack[j];
 		for (int i = 0; i < local_rightsib_backpatch_count; i ++)
 			*local_rightsib_backpatch_stack[i] = NULL;
 	}
+        if (TRACE_REGION == 6) dfsan_off();
 	wtime(&tend);
 //	printf("Creating the first tree from source file cost %f seconds\n", tend - tstart);
 //       printf("we have %d nodes in the initial FP tree\n", totalnodes);
@@ -1341,6 +1354,7 @@ int FP_tree::FP_growth_first(FSout* fout)
 		}
 
 		#pragma omp parallel for schedule(dynamic,1)
+                if (TRACE_REGION == 7) dfsan_on();
 		for(sequence=upperbound - 1; sequence>=lowerbound; sequence--)
 		{	int current, new_item_no, listlen;
 			int MC2=0;			
@@ -1422,6 +1436,7 @@ int FP_tree::FP_growth_first(FSout* fout)
 			}
 			release_node_array_after_mining(sequence, thread, workingthread);
 		}
+                if (TRACE_REGION == 7) dfsan_off();
 	}
 	 wtime(&tend);
 //	 printf("the major FP_growth cost %f vs %f seconds\n", tend - tstart, temp_time - tstart);
