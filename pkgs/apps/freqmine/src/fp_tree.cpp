@@ -54,14 +54,30 @@ static int omp_get_thread_num() {return 0;}
 
 enum {
   ZERO,
-  LOOP1_BODY,
-  LOOP2_BODY,
-  LOOP3_BODY,
-  LOOP4_BODY,
-  LOOP5_BODY,
-  LOOP6_BODY,
-  LOOP7_BODY
+  LOOP1,
+  LOOP2,
+  LOOP3,
+  LOOP4,
+  LOOP5,
+  LOOP6,
+  LOOP7
 } mark;
+
+static const char * LOOP1_BODY = "loop1-body";
+static const char * LOOP2_BODY = "loop2-body";
+static const char * LOOP3_BODY = "loop3-body";
+static const char * LOOP4_BODY = "loop4-body";
+static const char * LOOP5_BODY = "loop5-body";
+static const char * LOOP6_BODY = "loop6-body";
+static const char * LOOP7_BODY = "loop7-body";
+
+static const char * LOOP1_POST = "loop1-post";
+static const char * LOOP2_POST = "loop2-post";
+static const char * LOOP3_POST = "loop3-post";
+static const char * LOOP4_POST = "loop4-post";
+static const char * LOOP5_POST = "loop5-post";
+static const char * LOOP6_POST = "loop6-post";
+static const char * LOOP7_POST = "loop7-post";
 
 bool loop7_traced = false;
 
@@ -223,10 +239,11 @@ template <class T> void first_transform_FPTree_into_FPArray(FP_tree *fptree, T m
 	}
 	new_data_num[0][0] = sum_new_data_num;
 	T *ItemArray = (T *)local_buf->newbuf(1, new_data_num[0][0] * sizeof(T));
-        if (TRACE_REGION == 1) dfsan_on();
+        dfsan_trace_instructions();
+        dfsan_begin_marking(LOOP1);
 #pragma omp parallel for
 	for (j = 0; j < workingthread; j ++) {
-		dfsan_begin_marking(LOOP1_BODY);
+		dfsan_trace_region(LOOP1_BODY);
 		int kept_itemiter;
 		int itemiter = content_offset_array[j] - 1;
 		int stacktop;
@@ -299,9 +316,10 @@ template <class T> void first_transform_FPTree_into_FPArray(FP_tree *fptree, T m
 				kept_itemiter ++;
 			}
 		}
-		dfsan_end_marking(LOOP1_BODY);
+		dfsan_trace_instructions();
 	}
-        if (TRACE_REGION == 1) dfsan_off();
+        dfsan_end_marking(LOOP1);
+        dfsan_trace_region(LOOP1_POST);
 	fptree->ItemArray = (int *) ItemArray;
 }
 
@@ -549,10 +567,11 @@ void FP_tree::database_tiling(int workingthread)
 		for (j = local_num_hot_item; j < local_itemno; j ++)
 			origin[i][j] = 1;
 	}
-        if (TRACE_REGION == 2) dfsan_on();
+        dfsan_trace_instructions();
+        dfsan_begin_marking(LOOP2);
 #pragma omp parallel for schedule(dynamic,1)
 	for (i = 0; i < mapfile->tablesize; i ++) {
-		dfsan_begin_marking(LOOP2_BODY);
+		dfsan_trace_region(LOOP2_BODY);
 		int k, l;
 		int *content;
 		MapFileNode *currentnode;
@@ -648,9 +667,10 @@ void FP_tree::database_tiling(int workingthread)
 			newnode->top = currentpos;
 			currentnode->finalize();
 			thread_pos[thread] = currentpos;
-			dfsan_end_marking(LOOP2_BODY);
+			dfsan_trace_instructions();
 	}
-        if (TRACE_REGION == 2) dfsan_off();
+        dfsan_end_marking(LOOP2);
+        dfsan_trace_region(LOOP2_POST);
 	
 	for (i = 0; i < workingthread; i ++) {
 		thread_pos[i] = 0;
@@ -741,10 +761,11 @@ void FP_tree::database_tiling(int workingthread)
 			}
 		}
 
-        if (TRACE_REGION == 3) dfsan_on();
+        dfsan_trace_instructions();
+        dfsan_begin_marking(LOOP3);
 #pragma omp parallel for
 	for (i = 0; i < workingthread; i ++) {
-		dfsan_begin_marking(LOOP3_BODY);
+		dfsan_trace_region(LOOP3_BODY);
 		MapFileNode *current_mapfilenode;
 		unsigned short * content;
 		int k, size, current_pos, ntype, has;
@@ -767,9 +788,10 @@ void FP_tree::database_tiling(int workingthread)
 			current_mapfilenode->finalize();
 			current_mapfilenode = current_mapfilenode->next;
 		}
-		dfsan_end_marking(LOOP3_BODY);
+		dfsan_trace_instructions();
 	}
-        if (TRACE_REGION == 3) dfsan_off();
+        dfsan_end_marking(LOOP3);
+        dfsan_trace_region(LOOP3_POST);
 	delete [] tempntypeoffsetbase;
 	delete [] thread_pos;
 }
@@ -902,10 +924,11 @@ void FP_tree::scan1_DB(Data* fdat)
 			hot_node_index[i] = j;
 	}
 	hot_node_depth[0] = 0;
-        if (TRACE_REGION == 4) dfsan_on();
+        dfsan_trace_instructions();
+        dfsan_begin_marking(LOOP4);
 	#pragma omp parallel for
 	for (int k = 0; k < workingthread; k ++) {
-		dfsan_begin_marking(LOOP4_BODY);
+                dfsan_trace_region(LOOP4_BODY);
 		int i;
 #ifdef __linux__
 #ifdef CPU_SETSIZE
@@ -919,9 +942,6 @@ void FP_tree::scan1_DB(Data* fdat)
 		sched_setaffinity(k, sizeof(unsigned long), &cpu_mask);
 #endif
 #endif
-                // This loop exhausts the number of labels. Avoid tracing
-                // internals by now.
-                if (TRACE_REGION == 4) dfsan_off();
 
 		currentnodeiter[k] = (int**)fp_buf[k]->newbuf(1, itemno * (14 + fast_rightsib_table_size) * sizeof(int *) + num_hot_node * 2 * sizeof(int *)  + (fast_rightsib_table_size * itemno) * sizeof(int *) + fast_rightsib_table_size + 3 * sizeof(int*));
 		nodestack[k] = (Fnode**)(currentnodeiter[k] + itemno);
@@ -964,10 +984,10 @@ void FP_tree::scan1_DB(Data* fdat)
 			ITlen[k][i] = 0;
 			bran[k][i] = 0;
 		}
-		if (TRACE_REGION == 4) dfsan_on();
-		dfsan_end_marking(LOOP4_BODY);
+		dfsan_trace_instructions();
 	}
-        if (TRACE_REGION == 4) dfsan_off();
+        dfsan_end_marking(LOOP4);
+        dfsan_trace_region(LOOP4_POST);
 	mapfile->transform_list_table();
 	for (i = 0; i < hot_node_num; i ++)
 		ntypeidarray[i] = i;
@@ -1095,10 +1115,11 @@ void FP_tree::scan2_DB(int workingthread)
 	wtime(&tstart);
 	database_tiling(workingthread);
 	Fnode **local_hashtable = hashtable[0];
-        if (TRACE_REGION == 5) dfsan_on();
+        dfsan_trace_instructions();
+        dfsan_begin_marking(LOOP5);
 #pragma omp parallel for schedule(dynamic,1)
 	for (j = 0; j < mergedworknum; j ++) {
-		dfsan_begin_marking(LOOP5_BODY);
+		dfsan_trace_region(LOOP5_BODY);
 #ifdef TRACE_EXPOSE_PARALLELISM
 		int thread = j % TRACE_MAX_THREADS;
 #else
@@ -1205,9 +1226,10 @@ void FP_tree::scan2_DB(int workingthread)
 		}
 		rightsib_backpatch_count[thread][0] = local_rightsib_backpatch_count;
 		threadworkloadnum[thread] = localthreadworkloadnum;
-		dfsan_end_marking(LOOP5_BODY);
+		dfsan_trace_instructions();
 	}
-        if (TRACE_REGION == 5) dfsan_off();
+        dfsan_end_marking(LOOP5);
+        dfsan_trace_region(LOOP5_POST);
 	delete database_buf;
 	
 	for (int i = 0; i < workingthread; i ++) {
@@ -1217,17 +1239,19 @@ void FP_tree::scan2_DB(int workingthread)
 	}
 	int totalnodes = cal_level_25(0);
 	
-        if (TRACE_REGION == 6) dfsan_on();
+        dfsan_trace_instructions();
+        dfsan_begin_marking(LOOP6);
 #pragma omp parallel for
 	for (j = 0; j < workingthread; j ++) {
-		dfsan_begin_marking(LOOP6_BODY);
+		dfsan_trace_region(LOOP6_BODY);
 		int local_rightsib_backpatch_count = rightsib_backpatch_count[j][0];
 		Fnode ***local_rightsib_backpatch_stack = rightsib_backpatch_stack[j];
 		for (int i = 0; i < local_rightsib_backpatch_count; i ++)
 			*local_rightsib_backpatch_stack[i] = NULL;
-		dfsan_end_marking(LOOP6_BODY);
+		dfsan_trace_instructions();
 	}
-        if (TRACE_REGION == 6) dfsan_off();
+        dfsan_end_marking(LOOP6);
+        dfsan_trace_region(LOOP6_POST);
 	wtime(&tend);
 //	printf("Creating the first tree from source file cost %f seconds\n", tend - tstart);
 //       printf("we have %d nodes in the initial FP tree\n", totalnodes);
@@ -1398,17 +1422,17 @@ int FP_tree::FP_growth_first(FSout* fout)
 			}
 		}
 
+                dfsan_trace_instructions();
                 // Loop 7 is the only loop that is run more than once, but only
-                // the last run is non-empty. Trace that one.
-                if (TRACE_REGION == 7 &&
-                    (upperbound - 1 >= lowerbound)) {
+                // the last run is non-empty. Mark that one.
+                if (upperbound - 1 >= lowerbound) {
                   loop7_traced = true;
-                  dfsan_on();
+                  dfsan_begin_marking(LOOP7);
                 }
 		#pragma omp parallel for schedule(dynamic,1)
 
 		for(sequence=upperbound - 1; sequence>=lowerbound; sequence--)
-		{	dfsan_begin_marking(LOOP7_BODY);
+		{	dfsan_trace_region(LOOP7_BODY);
 			int current, new_item_no, listlen;
 			int MC2=0;			
 			unsigned int MR2=0;	
@@ -1452,7 +1476,7 @@ int FP_tree::FP_growth_first(FSout* fout)
 				}
 				local_list->top=listlen-1;
 				release_node_array_after_mining(sequence, thread, workingthread);
-				dfsan_end_marking(LOOP7_BODY);
+				dfsan_trace_instructions();
 				continue;
 			}
 
@@ -1493,9 +1517,12 @@ int FP_tree::FP_growth_first(FSout* fout)
 				local_list->top = listlen-1;
 			}
 			release_node_array_after_mining(sequence, thread, workingthread);
-			dfsan_end_marking(LOOP7_BODY);
+			dfsan_trace_instructions();
 		}
-                if (TRACE_REGION == 7 && loop7_traced) dfsan_off();
+                if (loop7_traced) {
+                  dfsan_end_marking(LOOP7);
+                }
+                dfsan_trace_region(LOOP7_POST);
 	}
 	 wtime(&tend);
 //	 printf("the major FP_growth cost %f vs %f seconds\n", tend - tstart, temp_time - tstart);

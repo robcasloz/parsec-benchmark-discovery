@@ -106,7 +106,7 @@ void printLen()
 
 int main(int argc, char **argv)
 {
-	dfsan_off();
+	dfsan_trace_region("PROLOGUE");
 	double tstart, tdatap, tend;
 	int workingthread=omp_get_max_threads();
 	int i;
