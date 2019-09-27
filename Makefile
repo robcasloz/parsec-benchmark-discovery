@@ -18,7 +18,7 @@ all-loop-maps-pdf: freqmine.loop1.maps.pdf freqmine.loop3.maps.pdf	\
                    freqmine.loop7.maps.pdf
 
 freqmine.trace: pkgs/apps/freqmine/src/*
-	TRACE_MAX_THREADS=$(TRACE_MAX_THREADS) ./build-trace.sh
+	TRACE_MAX_THREADS=$(TRACE_MAX_THREADS) ./build-trace.sh freqmine
 
 # Iterations: 4
 freqmine.loop1.trace: freqmine.simple.trace

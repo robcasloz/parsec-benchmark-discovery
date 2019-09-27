@@ -5,3 +5,10 @@
 # Default parallelization is pthreads
 source ${PARSECDIR}/pkgs/apps/freqmine/parsec/discovery-pthreads.bldconf
 
+# Prevent calls to 'sched_setaffinity' in 'scan1_DB' (fp_tree.cpp) which
+# introduce false dependencies (due to bit manipulation) and forbid
+# parallelization of loop 4.
+export UNDEFINE_LINUX="-U__linux__"
+if [[ $CXXFLAGS != *"${UNDEFINE_LINUX}"* ]]; then
+    export CXXFLAGS="${CXXFLAGS} ${UNDEFINE_LINUX}"
+fi
