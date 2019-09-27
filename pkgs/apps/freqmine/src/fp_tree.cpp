@@ -1153,7 +1153,7 @@ void FP_tree::scan2_DB(int workingthread)
 				compact = content + current_pos;
 				{
 					Fnode* child;
-					Fnode* temp, *temp2;
+					Fnode* temp = NULL, *temp2;
 					Fnode** backpatch_node = NULL;
 					int i=0, k;
 					child = current_root;
